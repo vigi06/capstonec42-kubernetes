@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 10%
+  replicas: 3
+  selector:
+    matchLabels:
+      app: server
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      name: server
+      labels:
+        app: server
+    spec:
+      containers:
+      - name: server
+        image: 303150498045.dkr.ecr.us-east-1.amazonaws.com/capstone456
+        ports:
+        - containerPort: 8081
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 1
+          periodSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 1
+          periodSeconds: 3
+        resources:
+          requests:
+            memory: "500M"
+            cpu: "200m" # This is important during Hpa autoscaling and downscaling
+          limits:
+            memory: "1Gi"
+      tolerations:
+        - key: jest
+          value: voteapp
+          operator: Equal
+          effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - capstone
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8081
+  selector:
+    app: server
