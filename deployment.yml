@@ -12,9 +12,6 @@ spec:
   selector:
     matchLabels:
       app: server
-  selector:
-    matchLabels:
-      app: server
   template:
     metadata:
       name: server
